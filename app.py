@@ -1,6 +1,6 @@
 import streamlit as st
-import cv2
 import numpy as np
+from PIL import Image
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, UpSampling2D, Input
 from tensorflow.keras.models import Model
 from sklearn.cluster import KMeans
@@ -9,7 +9,7 @@ from sklearn.cluster import KMeans
 # STREAMLIT CONFIG
 # -------------------------------
 st.set_page_config(page_title="Traffic Image Clustering", layout="wide")
-st.title("🚦 Traffic Vehicle Clustering (CNN + KMeans)")
+st.title("🚦 Traffic Vehicle Clustering (CNN Autoencoder + KMeans)")
 
 # -------------------------------
 # SETTINGS
@@ -21,7 +21,7 @@ CLUSTERS = 5
 # IMAGE UPLOAD
 # -------------------------------
 uploaded_files = st.file_uploader(
-    "Upload traffic images (JPG/PNG)",
+    "Upload traffic images (JPG / PNG)",
     type=["jpg", "jpeg", "png"],
     accept_multiple_files=True
 )
@@ -32,20 +32,19 @@ if uploaded_files and len(uploaded_files) >= CLUSTERS:
     file_names = []
 
     for file in uploaded_files:
-        file_bytes = np.asarray(bytearray(file.read()), dtype=np.uint8)
-        img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-
-        if img is None:
-            st.error(f"Failed to read image: {file.name}")
+        try:
+            img = Image.open(file).convert("RGB")
+        except Exception:
+            st.error(f"Cannot read image: {file.name}")
             st.stop()
 
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+        img = img.resize((IMG_SIZE, IMG_SIZE))
+        img_array = np.array(img, dtype="float32") / 255.0
 
-        images.append(img)
+        images.append(img_array)
         file_names.append(file.name)
 
-    images = np.array(images, dtype="float32") / 255.0
+    images = np.array(images)
     st.success(f"Loaded {len(images)} images")
 
     # -------------------------------
@@ -114,11 +113,11 @@ if uploaded_files and len(uploaded_files) >= CLUSTERS:
         results_text += f"{file_names[i]} -> Cluster {labels[i]}\n"
 
     st.download_button(
-        label="Download Cluster Results",
-        data=results_text,
+        "Download Cluster Results",
+        results_text,
         file_name="aton_clusters.txt",
         mime="text/plain"
     )
 
 else:
-    st.info("Please upload at least 5 images to start clustering.")
+    st.info("Upload at least 5 images to start clustering.")
