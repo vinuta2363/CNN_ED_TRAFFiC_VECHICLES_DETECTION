@@ -1,7 +1,7 @@
-autoencoder.keras
-encoder.keras
-kmeans.pkl
-aton_clusters.txt
-app.py   (Streamlit inference app)
-requirements.txt
-.python-version
+streamlit
+tensorflow==2.15.0
+numpy
+scikit-learn
+pillow
+joblib
+
