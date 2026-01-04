@@ -1,3 +1,7 @@
+import tensorflow as tf
+import streamlit as st
+
+st.write("TensorFlow version:", tf.__version__)
 import streamlit as st
 import numpy as np
 from PIL import Image
